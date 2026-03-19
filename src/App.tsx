@@ -6,7 +6,22 @@ import { QuestionScreen } from "@/components/screens/QuestionScreen";
 import { GameOverScreen } from "@/components/screens/GameOverScreen";
 
 function GameScreens() {
-  const { state } = useGame();
+  const { state, mode } = useGame();
+
+  if (mode === "display" && state.phase === "setup") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <h1 className="text-6xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Maggie Math Jeopardy
+          </h1>
+          <p className="text-2xl text-blue-300 animate-pulse">
+            Waiting for the game to start...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   switch (state.phase) {
     case "setup":

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function BoardScreen() {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, mode } = useGame();
   const [showEndDialog, setShowEndDialog] = useState(false);
 
   return (
@@ -30,32 +30,39 @@ export function BoardScreen() {
         <div className="text-blue-300 text-sm">
           {state.revealedCount} / {state.totalCells} questions answered
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowEndDialog(true)}
-          className="text-white border-white/30 bg-white/10 hover:bg-white/20"
-        >
-          End Game
-        </Button>
+        {mode === "host" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEndDialog(true)}
+            className="text-white border-white/30 bg-white/10 hover:bg-white/20"
+          >
+            End Game
+          </Button>
+        )}
       </div>
 
-      <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>End Game Early?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to end the game? Current scores will be final.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep Playing</AlertDialogCancel>
-            <AlertDialogAction onClick={() => dispatch({ type: "END_GAME_EARLY" })}>
-              End Game
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {mode === "host" && (
+        <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>End Game Early?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to end the game? Current scores will be
+                final.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Playing</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => dispatch({ type: "END_GAME_EARLY" })}
+              >
+                End Game
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { PLAYER_COLOR_MAP } from "@/lib/playerColors";
 import { cn } from "@/lib/utils";
 
 export function GameOverScreen() {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, mode } = useGame();
 
   const sorted = [...state.players].sort((a, b) => b.score - a.score);
   const winner = sorted[0];
@@ -69,13 +69,15 @@ export function GameOverScreen() {
             })}
           </div>
 
-          <Button
-            className="w-full text-lg py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            size="lg"
-            onClick={() => dispatch({ type: "PLAY_AGAIN" })}
-          >
-            Play Again!
-          </Button>
+          {mode === "host" && (
+            <Button
+              className="w-full text-lg py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              size="lg"
+              onClick={() => dispatch({ type: "PLAY_AGAIN" })}
+            >
+              Play Again!
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

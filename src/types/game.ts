@@ -5,6 +5,8 @@ export type GamePhase = "setup" | "board" | "question" | "answer" | "gameOver";
 
 export type DifficultyLevel = "easy" | "medium" | "hard";
 
+export type PresentationMode = "host" | "display";
+
 export type PlayerColor =
   | "red"
   | "blue"
@@ -57,4 +59,6 @@ export interface GameState {
   buzzerState: BuzzerState;
   revealedCount: number;
   totalCells: number;
+  timerDeadline: number | null;
+  timerPhase: "thinking" | "answering" | null;
 }

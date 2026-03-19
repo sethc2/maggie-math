@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   cell: BoardCellType;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export function BoardCell({ cell, onClick }: Props) {
@@ -16,10 +16,12 @@ export function BoardCell({ cell, onClick }: Props) {
         "shadow-inner",
         cell.isRevealed
           ? "bg-blue-950/50 cursor-default"
-          : "bg-blue-800 hover:bg-blue-600 cursor-pointer hover:scale-105 active:scale-95"
+          : onClick
+            ? "bg-blue-800 hover:bg-blue-600 cursor-pointer hover:scale-105 active:scale-95"
+            : "bg-blue-800 cursor-default"
       )}
       onClick={onClick}
-      disabled={cell.isRevealed}
+      disabled={cell.isRevealed || !onClick}
     >
       {cell.isRevealed ? "" : `$${cell.pointValue}`}
     </button>

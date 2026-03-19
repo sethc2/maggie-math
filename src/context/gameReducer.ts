@@ -16,7 +16,9 @@ export type GameAction =
   | { type: "RETURN_TO_BOARD" }
   | { type: "NO_MORE_BUZZERS" }
   | { type: "END_GAME_EARLY" }
-  | { type: "PLAY_AGAIN" };
+  | { type: "PLAY_AGAIN" }
+  | { type: "SET_STATE"; state: GameState }
+  | { type: "TIMER_EXPIRED" };
 
 export const initialGameState: GameState = {
   phase: "setup",
@@ -31,6 +33,8 @@ export const initialGameState: GameState = {
   buzzerState: initialBuzzerState,
   revealedCount: 0,
   totalCells: 30,
+  timerDeadline: null,
+  timerPhase: null,
 };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -75,6 +79,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         categories,
         revealedCount: 0,
         players: state.players.map((p) => ({ ...p, score: 0 })),
+        timerDeadline: null,
+        timerPhase: null,
       };
     }
 
@@ -91,6 +97,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           firstBuzzPlayerId: null,
           lockedOutPlayerIds: [],
         },
+        timerDeadline: Date.now() + 30_000,
+        timerPhase: "thinking",
       };
     }
 
@@ -109,6 +117,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             { playerId: action.playerId, timestamp: action.timestamp },
           ],
         },
+        timerDeadline: Date.now() + 5_000,
+        timerPhase: "answering",
       };
     }
 
@@ -123,6 +133,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           p.id === buzzPlayerId ? { ...p, score: p.score + pointValue } : p
         ),
         buzzerState: { ...state.buzzerState, isActive: false },
+        timerDeadline: null,
+        timerPhase: null,
       };
     }
 
@@ -145,6 +157,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           firstBuzzPlayerId: null,
           lockedOutPlayerIds: newLockedOut,
         },
+        timerDeadline: allLockedOut ? null : Date.now() + 30_000,
+        timerPhase: allLockedOut ? null : "thinking",
       };
     }
 
@@ -153,6 +167,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         phase: "answer",
         buzzerState: { ...state.buzzerState, isActive: false },
+        timerDeadline: null,
+        timerPhase: null,
       };
     }
 
@@ -173,11 +189,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentCell: null,
         buzzerState: initialBuzzerState,
         revealedCount: newRevealedCount,
+        timerDeadline: null,
+        timerPhase: null,
       };
     }
 
     case "END_GAME_EARLY": {
-      return { ...state, phase: "gameOver" };
+      return { ...state, phase: "gameOver", timerDeadline: null, timerPhase: null };
     }
 
     case "PLAY_AGAIN": {
@@ -190,6 +208,46 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         })),
         difficulty: state.difficulty,
       };
+    }
+
+    case "SET_STATE": {
+      return action.state;
+    }
+
+    case "TIMER_EXPIRED": {
+      if (state.timerPhase === "thinking") {
+        return {
+          ...state,
+          phase: "answer",
+          buzzerState: { ...state.buzzerState, isActive: false },
+          timerDeadline: null,
+          timerPhase: null,
+        };
+      }
+      if (state.timerPhase === "answering") {
+        if (!state.currentCell || !state.buzzerState.firstBuzzPlayerId) return state;
+        const pointVal = state.currentCell.pointValue;
+        const wrongPlayerId = state.buzzerState.firstBuzzPlayerId;
+        const newLockedOut = [...state.buzzerState.lockedOutPlayerIds, wrongPlayerId];
+        const allLockedOut = state.players.every((p) => newLockedOut.includes(p.id));
+
+        return {
+          ...state,
+          phase: allLockedOut ? "answer" : "question",
+          players: state.players.map((p) =>
+            p.id === wrongPlayerId ? { ...p, score: p.score - pointVal } : p
+          ),
+          buzzerState: {
+            ...state.buzzerState,
+            isActive: !allLockedOut,
+            firstBuzzPlayerId: null,
+            lockedOutPlayerIds: newLockedOut,
+          },
+          timerDeadline: allLockedOut ? null : Date.now() + 30_000,
+          timerPhase: allLockedOut ? null : "thinking",
+        };
+      }
+      return state;
     }
 
     default:
